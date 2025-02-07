@@ -5,12 +5,12 @@ import './component.css'
 function Header() {
     return (
         <>
-            <div className="parent-header flex justify-between h-10 items-center bg-white shadow-md rounded hover:shadow-lg transition-shadow duration-300">
-                <div className="logo mx-4">logo</div>
-                <div className="nav mx-4">
-                    <ul className='flex gap-2'>
+            <div className="parent-header flex justify-between h-14 items-center bg-white shadow-md rounded hover:shadow-lg transition-shadow duration-300">
+                <div className="logo mx-6"></div>
+                <div className="nav mx-6">
+                    <ul className='flex gap-4'>
                         <li><NavLink to="/Schedules">Schedules</NavLink></li>
-                        <li><NavLink to="/login">login</NavLink></li>
+                        <li><NavLink to="/login">Login</NavLink></li>
                     </ul>
                 </div>
             </div>
