@@ -5,6 +5,7 @@ import Header from './component/header'
 import Footer from './component/footer'
 import Home from './pages/home'
 import Schedules from './pages/schedules'
+import ForgetPassword from './pages/forgetPw'
 
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
         <Route path='/' element={<Home />} />
         <Route path='/schedules' element={<Schedules/>}/>
         <Route path='/login' element={<Login/>}/>
+        <Route path='/forgetpassword' element = {<ForgetPassword/>}/>
       </Routes>
       <Footer />
     </Router>
