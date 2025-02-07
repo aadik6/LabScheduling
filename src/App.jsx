@@ -7,7 +7,6 @@ import Home from './pages/home'
 import Schedules from './pages/schedules'
 
 
-
 function App() {
   return (
     <Router>

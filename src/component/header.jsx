@@ -1,4 +1,5 @@
 import React from 'react'
+import { NavLink } from 'react-router-dom'
 import './component.css'
 
 function Header() {
@@ -8,8 +9,8 @@ function Header() {
                 <div className="logo mx-4">logo</div>
                 <div className="nav mx-4">
                     <ul className='flex gap-2'>
-                        <li>Schedules</li>
-                        <li>login</li>
+                        <li><NavLink to="/Schedules">Schedules</NavLink></li>
+                        <li><NavLink to="/login">login</NavLink></li>
                     </ul>
                 </div>
             </div>
