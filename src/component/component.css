@@ -1,0 +1,11 @@
+.parent-footer {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+}
+
+.footer hr{
+    border: none;
+    border-top: 1px solid #666;
+    margin: 8px 0;
+}
