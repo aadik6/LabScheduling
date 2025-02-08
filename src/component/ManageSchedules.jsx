@@ -10,6 +10,7 @@ import {
   setDoc,
   orderBy,
   getDoc,
+  onSnapshot,
 } from "firebase/firestore";
 import { toast } from "react-hot-toast";
 import {
@@ -38,50 +39,61 @@ function ManageSchedules() {
   const [sortDirection, setSortDirection] = useState("asc");
   const [professorNames, setProfessorNames] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [pendingCount, setPendingCount] = useState(0);
 
   const fetchProfessorName = async (userId) => {
+    if (professorNames[userId]) {
+      // console.log(professorNames[userId])
+      return professorNames[userId];
+    }
+
     try {
-      const userDoc = await getDoc(doc(db, "users", userId));
-      if (userDoc.exists()) {
-        return userDoc.data().name;
+      const userRef = doc(collection(db, "users"), userId);
+      const userSnap = await getDoc(userRef);
+      // console.log(userSnap.data());
+      if (userSnap.exists()) {
+        const profName = userSnap.data().name || "Unknown";
+        setProfessorNames((prev) => ({ ...prev, [userId]: profName }));
+        return profName;
       }
-      return "Unknown Professor";
     } catch (err) {
       console.error("Error fetching professor name:", err);
-      return "Unknown Professor";
     }
-  };
-
-  const fetchPendingSchedules = async () => {
-    try {
-      const schedulesRef = collection(db, "pendingSchedules");
-      const q = query(schedulesRef, orderBy("date", sortDirection));
-      const querySnapshot = await getDocs(q);
-      const schedules = await Promise.all(
-        querySnapshot.docs.map(async (doc) => {
-          const data = { id: doc.id, ...doc.data() };
-          if (!professorNames[data.createdBy]) {
-            const profName = await fetchProfessorName(data.createdBy);
-            setProfessorNames((prev) => ({
-              ...prev,
-              [data.createdBy]: profName,
-            }));
-          }
-          return data;
-        })
-      );
-      setPendingSchedules(schedules);
-      setFilteredSchedules(schedules);
-    } catch (err) {
-      setError("Failed to fetch pending schedules");
-      console.error("Error fetching schedules:", err);
-    } finally {
-      setLoading(false);
-    }
+    return "Unknown";
   };
 
   useEffect(() => {
-    fetchPendingSchedules();
+    const schedulesRef = collection(db, "pendingSchedules");
+    const q = query(schedulesRef, orderBy("date", sortDirection));
+
+    const unsubscribe = onSnapshot(
+      q,
+      async (querySnapshot) => {
+        const schedules = await Promise.all(
+          querySnapshot.docs.map(async (docSnap) => {
+            const data = { id: docSnap.id, ...docSnap.data() };
+            data.professorName = await fetchProfessorName(data.createdBy);
+            return data;
+          })
+        );
+
+        const newCount = querySnapshot.size;
+        setPendingCount(newCount);
+
+        if (newCount > 0) {
+          document.title = `(${newCount}) Schedule Requests`;
+        } else {
+          document.title = "Schedule Requests";
+        }
+
+        setPendingSchedules(schedules);
+        setFilteredSchedules(schedules);
+        setLoading(false);
+      },
+      (err) => setError("Error fetching schedules: " + err.message)
+    );
+
+    return () => unsubscribe();
   }, [sortDirection]);
 
   useEffect(() => {
@@ -115,7 +127,7 @@ function ManageSchedules() {
           [schedule.timeSlot]: {
             batch: schedule.batch,
             subject: schedule.subject,
-            professor: schedule.createdBy,
+            createdBy: schedule.createdBy,
             timestamp: new Date().toISOString(),
           },
         },

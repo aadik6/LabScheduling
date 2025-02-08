@@ -10,6 +10,8 @@ import ForgetPassword from "./pages/forgetPw";
 import ManageSchedules from "./component/ManageSchedules";
 import { Toaster } from "react-hot-toast";
 import Loader from "./component/Loader";
+import ClassSchedules from "./component/ClassSchedules";
+import WeeklySchedules from "./component/WeeklySchedules";
 
 function App() {
   const { reFetch, loading } = useAuthStore();
@@ -27,7 +29,8 @@ function App() {
     <Router>
       <Header />
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<WeeklySchedules />} />
+        <Route path="/myschedule" element={<ClassSchedules />} />
         <Route path="/schedules" element={<ScheduleClass />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forget" element={<ForgetPassword />} />
