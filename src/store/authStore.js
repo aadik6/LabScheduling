@@ -14,6 +14,7 @@ export const useAuthStore = create((set) => ({
     toast.promise(signInWithEmailAndPassword(auth, email, password), {
       loading: "Logging in..",
       success: async (data) => {
+        setSession(data)
         setTimeout(() => {
           navigate("/");
         }, 2000);
@@ -50,3 +51,21 @@ export const useAuthStore = create((set) => ({
     return unsubscribe;
   },
 }));
+
+export const setSession = (data) => {
+  localStorage.setItem("user", JSON.stringify(data))
+  console.log(data, "token")
+}
+
+export const getSession = () => {
+  const access = localStorage.getItem("user");
+
+  if (access) {
+    const userObject = JSON.parse(access);
+    const { displayName, email, uid } = userObject.user;
+    const {accessToken} = userObject.user.stsTokenManager;
+    return { displayName, email, uid, accessToken,access };
+  }
+
+  return { accessToken: null }
+};
