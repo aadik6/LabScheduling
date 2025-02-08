@@ -12,6 +12,7 @@ import { Toaster } from "react-hot-toast";
 import Loader from "./component/Loader";
 import ClassSchedules from "./component/ClassSchedules";
 import WeeklySchedules from "./component/WeeklySchedules";
+import ProtectedRoute from "./utils/protectedRoute";
 
 function App() {
   const { reFetch, loading } = useAuthStore();
@@ -22,7 +23,7 @@ function App() {
   }, []);
 
   if (loading) {
-    return <Loader/>
+    return <Loader />
   }
 
   return (
@@ -34,7 +35,9 @@ function App() {
         <Route path="/schedules" element={<ScheduleClass />} />
         <Route path="/login" element={<Login />} />
         <Route path="/forget" element={<ForgetPassword />} />
-        <Route path="/manage" element={<ManageSchedules />} />
+        <Route path="" element={<ProtectedRoute />}>
+          <Route path="/manage" element={<ManageSchedules />} />
+        </Route>
       </Routes>
       <Toaster />
       <Footer />
