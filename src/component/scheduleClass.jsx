@@ -144,7 +144,7 @@ function ScheduleClass() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
       <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-2xl border border-gray-200">
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
           Schedule Lab Class

@@ -4,10 +4,10 @@ import { NavLink } from 'react-router-dom'
 function ForgetPassword() {
     return (
         <>
-            <div className="container mx-auto max-w-[500px] p-4">
-                <div className="forget-container">
+            <div className="container min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4 ">
+                <div className="forget-container bg-white rounded-2xl shadow-xl w-full max-w-md p-8 space-y-8">
                     <div className="forget-form bg-white p-6 rounded-lg shadow-md">
-                        <h2 className="text-xl font-bold mb-4">Forgot Password</h2>
+                        <h2 className="text-3xl text-center font-bold text-gray-900">Forgot Password</h2>
                         <form id="forget-form">
                             <div className="mb-3">
                                 <label htmlFor="forget-email" className="form-label block mb-1">
@@ -31,7 +31,6 @@ function ForgetPassword() {
                                 <NavLink
                                     to = "/login"
                                     className="text-blue-500 hover:underline"
-                                    // onClick={() => handleFormSwitch("login")}
                                 >
                                     Back to Login
                                 </NavLink>
