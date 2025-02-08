@@ -3,8 +3,18 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { db } from "../config/firebase.config";
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  where,
+  doc,
+  getDoc,
+} from "firebase/firestore";
 import { toast } from "react-hot-toast";
+import { useAuthStore } from "../store/authStore";
+import { Calendar, Clock, Users, BookOpen, AlertCircle } from "lucide-react";
 
 const getDateString = (date) => {
   return date.toISOString().split("T")[0];
@@ -31,7 +41,6 @@ const scheduleSchema = z
     endTime: z.string().min(1, "End time is required"),
     batch: z.string().min(1, "Batch/Class is required"),
     subject: z.string().min(1, "Subject is required"),
-    professor: z.string().min(1, "Professor name is required"),
   })
   .refine(
     (data) => {
@@ -56,6 +65,7 @@ const isTimeOverlap = (existingSlot, newStart, newEnd) => {
 };
 
 function ScheduleClass() {
+  const { user } = useAuthStore();
   const {
     register,
     handleSubmit,
@@ -75,6 +85,36 @@ function ScheduleClass() {
 
   const startTime = watch("startTime");
 
+  const checkTimeSlotConflicts = async (date, startTime, endTime) => {
+    const pendingSchedulesRef = collection(db, "pendingSchedules");
+    const pendingQuery = query(pendingSchedulesRef, where("date", "==", date));
+    const pendingSnapshot = await getDocs(pendingQuery);
+
+    const pendingConflict = pendingSnapshot.docs.some((doc) =>
+      isTimeOverlap(doc.data().timeSlot, startTime, endTime)
+    );
+
+    if (pendingConflict) {
+      return "This time slot conflicts with a pending schedule request";
+    }
+
+    const scheduleDocRef = doc(db, "schedules", date);
+    const scheduleDoc = await getDoc(scheduleDocRef);
+
+    if (scheduleDoc.exists()) {
+      const scheduleData = scheduleDoc.data();
+      const timeSlot = `${startTime}-${endTime}`;
+
+      for (const [slot, data] of Object.entries(scheduleData)) {
+        if (isTimeOverlap(slot, startTime, endTime)) {
+          return "This time slot is already booked in the approved schedules";
+        }
+      }
+    }
+
+    return null;
+  };
+
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     setError(null);
@@ -89,41 +129,32 @@ function ScheduleClass() {
         return;
       }
 
-      const timeSlot = `${data.startTime}-${data.endTime}`;
-      const pendingSchedulesRef = collection(db, "pendingSchedules");
-
-      const scheduleQuery = query(
-        pendingSchedulesRef,
-        where("date", "==", data.date)
-      );
-      const querySnapshot = await getDocs(scheduleQuery);
-
-      const existingSchedules = querySnapshot.docs.map((doc) => doc.data());
-
-      const hasConflict = existingSchedules.some((schedule) =>
-        isTimeOverlap(schedule.timeSlot, data.startTime, data.endTime)
+      const conflict = await checkTimeSlotConflicts(
+        data.date,
+        data.startTime,
+        data.endTime
       );
 
-      if (hasConflict) {
-        toast.error("This time slot is already booked for the selected date.");
+      if (conflict) {
+        toast.error(conflict);
         setIsSubmitting(false);
         return;
       }
 
-      await addDoc(pendingSchedulesRef, {
+      const timeSlot = `${data.startTime}-${data.endTime}`;
+      await addDoc(collection(db, "pendingSchedules"), {
         date: data.date,
         batch: data.batch,
         subject: data.subject,
-        professor: data.professor,
         timestamp: new Date().toISOString(),
         status: "pending",
         timeSlot,
+        createdBy: user.uid,
       });
 
       reset();
       setSubmitted(true);
       toast.success("Class scheduled successfully!");
-      // setTimeout(() => setSubmitted(false), 3000);
     } catch (err) {
       toast.error("Failed to schedule class. Please try again.");
       console.error("Error scheduling class:", err);
@@ -144,118 +175,153 @@ function ScheduleClass() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
-      <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-2xl border border-gray-200">
-        <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
-          Schedule Lab Class
-        </h2>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {/* Date Input */}
-          <div>
-            <label className="block text-gray-700 font-medium">Date</label>
-            <input
-              type="date"
-              min={today}
-              max={maxDate}
-              {...register("date")}
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.date && (
-              <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>
-            )}
+    <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-6 border-b border-gray-100">
+            <h2 className="text-2xl font-semibold text-gray-800">
+              Schedule Lab Class
+            </h2>
+            <p className="mt-2 text-sm text-gray-500">
+              Fill in the details below to request a lab class schedule.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-700 font-medium">
-                Start Time
-              </label>
-              <input
-                type="time"
-                {...register("startTime")}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              />
-              {errors.startTime && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.startTime.message}
-                </p>
-              )}
+          <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+            <div className="space-y-6">
+              {/* Date Field */}
+              <div className="space-y-1">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                  Select Date
+                </label>
+                <input
+                  type="date"
+                  min={today}
+                  max={maxDate}
+                  {...register("date")}
+                  className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                />
+                {errors.date && (
+                  <div className="flex items-center text-red-500 text-sm mt-1">
+                    <AlertCircle className="w-4 h-4 mr-1" />
+                    {errors.date.message}
+                  </div>
+                )}
+              </div>
+
+              {/* Time Fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="flex items-center text-sm font-medium text-gray-700">
+                    <Clock className="w-4 h-4 mr-2 text-gray-400" />
+                    Start Time
+                  </label>
+                  <input
+                    type="time"
+                    {...register("startTime")}
+                    className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  />
+                  {errors.startTime && (
+                    <div className="flex items-center text-red-500 text-sm mt-1">
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.startTime.message}
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="flex items-center text-sm font-medium text-gray-700">
+                    <Clock className="w-4 h-4 mr-2 text-gray-400" />
+                    End Time
+                  </label>
+                  <input
+                    type="time"
+                    min={getMinEndTime()}
+                    {...register("endTime")}
+                    className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  />
+                  {errors.endTime && (
+                    <div className="flex items-center text-red-500 text-sm mt-1">
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.endTime.message}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Batch Field */}
+              <div className="space-y-1">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <Users className="w-4 h-4 mr-2 text-gray-400" />
+                  Batch/Class
+                </label>
+                <input
+                  type="text"
+                  {...register("batch")}
+                  placeholder="e.g., CSIT 3rd Year"
+                  className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                />
+                {errors.batch && (
+                  <div className="flex items-center text-red-500 text-sm mt-1">
+                    <AlertCircle className="w-4 h-4 mr-1" />
+                    {errors.batch.message}
+                  </div>
+                )}
+              </div>
+
+              {/* Subject Field */}
+              <div className="space-y-1">
+                <label className="flex items-center text-sm font-medium text-gray-700">
+                  <BookOpen className="w-4 h-4 mr-2 text-gray-400" />
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  {...register("subject")}
+                  placeholder="e.g., Database Management"
+                  className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                />
+                {errors.subject && (
+                  <div className="flex items-center text-red-500 text-sm mt-1">
+                    <AlertCircle className="w-4 h-4 mr-1" />
+                    {errors.subject.message}
+                  </div>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <div className="pt-4">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Scheduling...
+                    </div>
+                  ) : (
+                    "Schedule Now"
+                  )}
+                </button>
+              </div>
             </div>
+          </form>
 
-            <div>
-              <label className="block text-gray-700 font-medium">
-                End Time
-              </label>
-              <input
-                type="time"
-                min={getMinEndTime()}
-                {...register("endTime")}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-              />
-              {errors.endTime && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.endTime.message}
-                </p>
-              )}
+          {/* Optional: Add a note about scheduling policy */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+            <div className="flex items-start text-sm text-gray-500">
+              <AlertCircle className="w-4 h-4 mr-2 mt-0.5 text-blue-500" />
+              <p>
+                Schedules can only be made for the next 7 days. All requests
+                need to be approved before they become active. You'll be
+                notified once your request is processed.
+              </p>
             </div>
           </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium">
-              Batch/Class
-            </label>
-            <input
-              type="text"
-              {...register("batch")}
-              placeholder="e.g., CSIT 3rd Year"
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.batch && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.batch.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium">Subject</label>
-            <input
-              type="text"
-              {...register("subject")}
-              placeholder="e.g., Database Management"
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.subject && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.subject.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-gray-700 font-medium">Professor</label>
-            <input
-              type="text"
-              {...register("professor")}
-              placeholder="e.g., Dr. Jane Smith"
-              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-            />
-            {errors.professor && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.professor.message}
-              </p>
-            )}
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition disabled:opacity-50"
-          >
-            {isSubmitting ? "Scheduling..." : "Schedule Now"}
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );

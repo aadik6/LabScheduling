@@ -9,6 +9,7 @@ import Login from "./pages/login";
 import ForgetPassword from "./pages/forgetPw";
 import ManageSchedules from "./component/ManageSchedules";
 import { Toaster } from "react-hot-toast";
+import Loader from "./component/Loader";
 
 function App() {
   const { reFetch, loading } = useAuthStore();
@@ -19,7 +20,7 @@ function App() {
   }, []);
 
   if (loading) {
-    return <p className="bg-red-500">Loading...</p>;
+    return <Loader/>
   }
 
   return (
