@@ -6,7 +6,7 @@ function ForgetPassword() {
         <>
             <div className="container min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4 ">
                 <div className="forget-container bg-white rounded-2xl shadow-xl w-full max-w-md p-8 space-y-8">
-                    <div className="forget-form bg-white p-6 rounded-lg shadow-md">
+                    <div className="forget-form">
                         <h2 className="text-3xl text-center font-bold text-gray-900">Forgot Password</h2>
                         <form id="forget-form">
                             <div className="mb-3">
@@ -15,7 +15,7 @@ function ForgetPassword() {
                                 </label>
                                 <input
                                     type="email"
-                                    className="form-control w-full border rounded px-3 py-2"
+                                   className="mt-1 block w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                                     id="forget-email"
                                     placeholder="Enter your registered email"
                                     required

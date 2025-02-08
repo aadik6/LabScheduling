@@ -175,6 +175,7 @@ function ScheduleClass() {
   };
 
   return (
+    <div className="p-8">
     <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
       <div className="max-w-3xl mx-auto">
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -324,6 +325,7 @@ function ScheduleClass() {
         </div>
       </div>
     </div>
+  </div>
   );
 }
 
