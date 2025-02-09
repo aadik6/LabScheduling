@@ -15,6 +15,7 @@ import {
 import { toast } from "react-hot-toast";
 import { useAuthStore } from "../store/authStore";
 import { Calendar, Clock, Users, BookOpen, AlertCircle } from "lucide-react";
+import AdminLayout from "./adminLayout";
 
 const getDateString = (date) => {
   return date.toISOString().split("T")[0];
@@ -175,157 +176,159 @@ function ScheduleClass() {
   };
 
   return (
-    <div className="p-8">
-    <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-100">
-            <h2 className="text-2xl font-semibold text-gray-800">
-              Schedule Lab Class
-            </h2>
-            <p className="mt-2 text-sm text-gray-500">
-              Fill in the details below to request a lab class schedule.
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit(onSubmit)} className="p-6">
-            <div className="space-y-6">
-              {/* Date Field */}
-              <div className="space-y-1">
-                <label className="flex items-center text-sm font-medium text-gray-700">
-                  <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                  Select Date
-                </label>
-                <input
-                  type="date"
-                  min={today}
-                  max={maxDate}
-                  {...register("date")}
-                  className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                />
-                {errors.date && (
-                  <div className="flex items-center text-red-500 text-sm mt-1">
-                    <AlertCircle className="w-4 h-4 mr-1" />
-                    {errors.date.message}
-                  </div>
-                )}
+    <AdminLayout>
+      <div className="p-8">
+        <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
+          <div className="max-w-3xl mx-auto">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <div className="p-6 border-b border-gray-100">
+                <h2 className="text-2xl font-semibold text-gray-800">
+                  Schedule Lab Class
+                </h2>
+                <p className="mt-2 text-sm text-gray-500">
+                  Fill in the details below to request a lab class schedule.
+                </p>
               </div>
 
-              {/* Time Fields */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="flex items-center text-sm font-medium text-gray-700">
-                    <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                    Start Time
-                  </label>
-                  <input
-                    type="time"
-                    {...register("startTime")}
-                    className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                  />
-                  {errors.startTime && (
-                    <div className="flex items-center text-red-500 text-sm mt-1">
-                      <AlertCircle className="w-4 h-4 mr-1" />
-                      {errors.startTime.message}
+              <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+                <div className="space-y-6">
+                  {/* Date Field */}
+                  <div className="space-y-1">
+                    <label className="flex items-center text-sm font-medium text-gray-700">
+                      <Calendar className="w-4 h-4 mr-2 text-gray-400" />
+                      Select Date
+                    </label>
+                    <input
+                      type="date"
+                      min={today}
+                      max={maxDate}
+                      {...register("date")}
+                      className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    />
+                    {errors.date && (
+                      <div className="flex items-center text-red-500 text-sm mt-1">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.date.message}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Time Fields */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="flex items-center text-sm font-medium text-gray-700">
+                        <Clock className="w-4 h-4 mr-2 text-gray-400" />
+                        Start Time
+                      </label>
+                      <input
+                        type="time"
+                        {...register("startTime")}
+                        className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                      />
+                      {errors.startTime && (
+                        <div className="flex items-center text-red-500 text-sm mt-1">
+                          <AlertCircle className="w-4 h-4 mr-1" />
+                          {errors.startTime.message}
+                        </div>
+                      )}
                     </div>
-                  )}
+
+                    <div className="space-y-1">
+                      <label className="flex items-center text-sm font-medium text-gray-700">
+                        <Clock className="w-4 h-4 mr-2 text-gray-400" />
+                        End Time
+                      </label>
+                      <input
+                        type="time"
+                        min={getMinEndTime()}
+                        {...register("endTime")}
+                        className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                      />
+                      {errors.endTime && (
+                        <div className="flex items-center text-red-500 text-sm mt-1">
+                          <AlertCircle className="w-4 h-4 mr-1" />
+                          {errors.endTime.message}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Batch Field */}
+                  <div className="space-y-1">
+                    <label className="flex items-center text-sm font-medium text-gray-700">
+                      <Users className="w-4 h-4 mr-2 text-gray-400" />
+                      Batch/Class
+                    </label>
+                    <input
+                      type="text"
+                      {...register("batch")}
+                      placeholder="e.g., CSIT 3rd Year"
+                      className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    />
+                    {errors.batch && (
+                      <div className="flex items-center text-red-500 text-sm mt-1">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.batch.message}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Subject Field */}
+                  <div className="space-y-1">
+                    <label className="flex items-center text-sm font-medium text-gray-700">
+                      <BookOpen className="w-4 h-4 mr-2 text-gray-400" />
+                      Subject
+                    </label>
+                    <input
+                      type="text"
+                      {...register("subject")}
+                      placeholder="e.g., Database Management"
+                      className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    />
+                    {errors.subject && (
+                      <div className="flex items-center text-red-500 text-sm mt-1">
+                        <AlertCircle className="w-4 h-4 mr-1" />
+                        {errors.subject.message}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="pt-4">
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                    >
+                      {isSubmitting ? (
+                        <div className="flex items-center justify-center">
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                          Scheduling...
+                        </div>
+                      ) : (
+                        "Schedule Now"
+                      )}
+                    </button>
+                  </div>
                 </div>
+              </form>
 
-                <div className="space-y-1">
-                  <label className="flex items-center text-sm font-medium text-gray-700">
-                    <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                    End Time
-                  </label>
-                  <input
-                    type="time"
-                    min={getMinEndTime()}
-                    {...register("endTime")}
-                    className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                  />
-                  {errors.endTime && (
-                    <div className="flex items-center text-red-500 text-sm mt-1">
-                      <AlertCircle className="w-4 h-4 mr-1" />
-                      {errors.endTime.message}
-                    </div>
-                  )}
+              {/* Optional: Add a note about scheduling policy */}
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <div className="flex items-start text-sm text-gray-500">
+                  <AlertCircle className="w-4 h-4 mr-2 mt-0.5 text-blue-500" />
+                  <p>
+                    Schedules can only be made for the next 7 days. All requests
+                    need to be approved before they become active. You'll be
+                    notified once your request is processed.
+                  </p>
                 </div>
               </div>
-
-              {/* Batch Field */}
-              <div className="space-y-1">
-                <label className="flex items-center text-sm font-medium text-gray-700">
-                  <Users className="w-4 h-4 mr-2 text-gray-400" />
-                  Batch/Class
-                </label>
-                <input
-                  type="text"
-                  {...register("batch")}
-                  placeholder="e.g., CSIT 3rd Year"
-                  className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                />
-                {errors.batch && (
-                  <div className="flex items-center text-red-500 text-sm mt-1">
-                    <AlertCircle className="w-4 h-4 mr-1" />
-                    {errors.batch.message}
-                  </div>
-                )}
-              </div>
-
-              {/* Subject Field */}
-              <div className="space-y-1">
-                <label className="flex items-center text-sm font-medium text-gray-700">
-                  <BookOpen className="w-4 h-4 mr-2 text-gray-400" />
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  {...register("subject")}
-                  placeholder="e.g., Database Management"
-                  className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                />
-                {errors.subject && (
-                  <div className="flex items-center text-red-500 text-sm mt-1">
-                    <AlertCircle className="w-4 h-4 mr-1" />
-                    {errors.subject.message}
-                  </div>
-                )}
-              </div>
-
-              {/* Submit Button */}
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
-                >
-                  {isSubmitting ? (
-                    <div className="flex items-center justify-center">
-                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      Scheduling...
-                    </div>
-                  ) : (
-                    "Schedule Now"
-                  )}
-                </button>
-              </div>
-            </div>
-          </form>
-
-          {/* Optional: Add a note about scheduling policy */}
-          <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-            <div className="flex items-start text-sm text-gray-500">
-              <AlertCircle className="w-4 h-4 mr-2 mt-0.5 text-blue-500" />
-              <p>
-                Schedules can only be made for the next 7 days. All requests
-                need to be approved before they become active. You'll be
-                notified once your request is processed.
-              </p>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </AdminLayout>
   );
 }
 

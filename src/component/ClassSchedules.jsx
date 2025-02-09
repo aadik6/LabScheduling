@@ -4,6 +4,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { toast } from "react-hot-toast";
 import { Calendar, Clock, Users, BookOpen, AlertCircle } from "lucide-react";
 import { useAuthStore } from "../store/authStore";
+import AdminLayout from "./adminLayout";
 
 function ClassSchedules() {
   const [activeTab, setActiveTab] = useState("schedules");
@@ -89,6 +90,7 @@ function ClassSchedules() {
   }
 
   return (
+    <AdminLayout>
     <div className="p-8">
       <div className="min-h-screen bg-gray-50 p-4 lg:p-6">
         <div className="max-w-3xl mx-auto">
@@ -245,6 +247,7 @@ function ClassSchedules() {
         </div>
       </div>
     </div>
+    </AdminLayout>
   );
 }
 
